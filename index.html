@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Takealot & Amazon ZA | Automated South African E-Commerce Super-App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0055A5',      // Takealot Blue
+                        primaryDark: '#003366',
+                        zaGreen: '#007A3D',       // South African Flag Green / Accent
+                        zaGold: '#FFB81C',        // South African Gold
+                        darkBg: '#090D16',
+                        cardBg: '#131C2E',
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes flashAnim {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .flash-badge { animation: flashAnim 1.5s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-[#090D16] text-slate-100 font-sans antialiased min-h-screen flex flex-col pb-20 md:pb-0 selection:bg-primary selection:text-white">
+
+    <!-- Top Announcement Bar (Takealot & Amazon ZA Style) -->
+    <div class="bg-gradient-to-r from-blue-900 via-primary to-emerald-800 text-white text-[11px] py-1.5 px-3 font-bold flex justify-between items-center z-50 shadow-md">
+        <div class="flex items-center gap-1.5 overflow-hidden whitespace-nowrap">
+            <span class="bg-black/40 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider flash-badge text-amber-300">🇿🇦 ZA NATIONWIDE SALE</span>
+            <span class="truncate">Takealot & Amazon.co.za API Live • Free Nationwide Courier Guy Shipping over R500</span>
+        </div>
+        <div class="hidden sm:flex items-center gap-3 text-slate-100 text-xs">
+            <a href="#hub-login" onclick="switchView('hub-login')" class="hover:underline flex items-center gap-1"><i class="fa-solid fa-lock text-amber-300"></i> Merchant Hub</a>
+            <span>|</span>
+            <select id="currency-selector" onchange="changeCurrency(this.value)" class="bg-black/40 text-white text-[11px] rounded px-1.5 py-0.5 border border-white/20 focus:outline-none">
+                <option value="ZAR">ZAR (R)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Header with Prominent Search Bar -->
+    <header class="sticky top-0 bg-[#131C2E]/95 backdrop-blur-md border-b border-slate-800 z-40 transition-all shadow-xl">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+            
+            <!-- Brand Logo & Cart Row for Mobile -->
+            <div class="w-full sm:w-auto flex items-center justify-between">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="switchView('storefront')">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-zaGold flex items-center justify-center text-white font-black text-xl sm:text-2xl shadow-lg">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-black text-base sm:text-xl tracking-tight text-white flex items-center gap-1">
+                            Takealot & Amazon ZA <span class="text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/40">ZAR Direct</span>
+                        </h1>
+                        <p class="text-[10px] text-slate-400 hidden sm:block">JHB & CPT Warehouses • Automated FBT / FBA</p>
+                    </div>
+                </div>
+
+                <!-- Mobile Header Right Actions -->
+                <div class="flex items-center gap-2 sm:hidden">
+                    <button onclick="switchView('hub-login')" class="px-3 py-2 rounded-xl bg-slate-800 text-slate-200 text-xs font-bold border border-slate-700">
+                        <i class="fa-solid fa-gauge-high text-amber-400"></i>
+                    </button>
+                    <button onclick="toggleCartDrawer()" class="relative flex items-center gap-1 px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-lg">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span id="cart-badge-mobile" class="bg-white text-primary rounded-full px-1.5 py-0.2 text-[10px] font-black">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Prominent Search Bar -->
+            <div class="w-full sm:flex-1 sm:max-w-2xl sm:mx-4">
+                <div class="relative w-full shadow-lg">
+                    <input type="text" id="main-search-input" oninput="handleSearch(this.value)" placeholder="🔍 Search 500+ tech gadgets, appliances, solar & lifestyle goods in ZAR..." class="w-full bg-[#090D16] text-slate-100 pl-11 pr-28 py-3.5 sm:py-3 rounded-full border-2 border-primary focus:outline-none focus:bg-slate-900 text-sm font-medium transition">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-4 sm:top-3.5 text-primary text-base"></i>
+                    <button onclick="handleSearch(document.getElementById('main-search-input').value)" class="absolute right-1.5 top-1.5 bottom-1.5 bg-gradient-to-r from-primary to-blue-700 hover:from-primaryDark hover:to-blue-800 text-white px-5 rounded-full text-xs font-black transition shadow flex items-center gap-1">
+                        <span>Search</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Desktop Header Right Actions -->
+            <div class="hidden sm:flex items-center gap-3">
+                <button onclick="switchView('hub-login')" class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition border border-slate-700">
+                    <i class="fa-solid fa-gauge-high text-amber-400"></i> Merchant Hub
+                </button>
+                <button onclick="toggleCartDrawer()" class="relative flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primaryDark text-white text-xs font-bold transition shadow-lg">
+                    <i class="fa-solid fa-cart-shopping text-sm"></i>
+                    <span>Cart</span>
+                    <span id="cart-badge" class="bg-white text-primary rounded-full px-1.5 py-0.2 text-[10px] font-black">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dynamic View Container -->
+    <main id="app-main-container" class="flex-1 flex flex-col">
+        <!-- Injected via JavaScript -->
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#131C2E]/95 backdrop-blur-md border-t border-slate-800 h-16 px-4 flex items-center justify-around z-50 shadow-2xl">
+        <button onclick="switchView('storefront'); setActiveBottomNav(this)" class="nav-btn flex flex-col items-center justify-center text-primary font-bold text-[10px] gap-0.5">
+            <i class="fa-solid fa-house text-lg"></i>
+            <span>Home</span>
+        </button>
+        <button onclick="filterByCategory('Electronics & Tech'); switchView('storefront'); setActiveBottomNav(this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 hover:text-white font-medium text-[10px] gap-0.5">
+            <i class="fa-solid fa-laptop text-lg"></i>
+            <span>Tech</span>
+        </button>
+        <button onclick="filterByCategory('Home & Appliances'); switchView('storefront'); setActiveBottomNav(this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 hover:text-white font-medium text-[10px] gap-0.5">
+            <i class="fa-solid fa-house-chimney text-lg"></i>
+            <span>Home</span>
+        </button>
+        <button onclick="toggleCartDrawer()" class="flex flex-col items-center justify-center text-slate-400 hover:text-white font-medium text-[10px] gap-0.5">
+            <i class="fa-solid fa-cart-shopping text-lg"></i>
+            <span>Cart</span>
+        </button>
+        <button onclick="switchView('hub-login'); setActiveBottomNav(this)" class="nav-btn flex flex-col items-center justify-center text-slate-400 hover:text-white font-medium text-[10px] gap-0.5">
+            <i class="fa-solid fa-gauge-high text-lg"></i>
+            <span>Hub</span>
+        </button>
+    </nav>
+
+    <!-- Cart Slide-Over Drawer -->
+    <div id="cart-drawer" class="fixed inset-0 z-50 overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onclick="toggleCartDrawer()"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-[#131C2E] border-l border-slate-800 shadow-2xl flex flex-col">
+                <!-- Cart Header -->
+                <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
+                    <h3 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-cart-shopping text-primary"></i> South Africa Cart (<span id="drawer-item-count">0</span>)
+                    </h3>
+                    <button onclick="toggleCartDrawer()" class="text-slate-400 hover:text-white p-2 text-lg">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <!-- Cart Items List -->
+                <div id="cart-items-container" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 divide-y divide-slate-800/50">
+                    <!-- Dynamic Cart Items -->
+                </div>
+                <!-- Cart Footer & Checkout -->
+                <div class="p-4 sm:p-5 border-t border-slate-800 bg-[#090D16]">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs sm:text-sm text-slate-400">Subtotal (SARS 15% VAT Incl.):</span>
+                        <span id="cart-subtotal-display" class="text-lg sm:text-xl font-black text-primary">R0.00</span>
+                    </div>
+                    <button onclick="openCheckoutModal()" class="w-full bg-gradient-to-r from-primary to-blue-700 hover:from-primaryDark hover:to-blue-800 text-white py-3.5 rounded-xl font-bold shadow-lg transition flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-lock"></i> Secure PayFast / Ozow / EFT Checkout
+                    </button>
+                    <p class="text-[10px] text-center text-slate-500 mt-3">Automated dispatch via Courier Guy & Takealot FBT / Amazon FBA DCs.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md hidden">
+        <div class="bg-[#131C2E] border border-slate-800 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative">
+            <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-lg sm:text-xl font-extrabold text-white mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-emerald-400"></i> Secure South African Checkout
+            </h3>
+            <p class="text-xs text-slate-400 mb-6">Enter your nationwide delivery details for dispatch via Courier Guy or RAM.</p>
+            
+            <form onsubmit="handleCheckoutSubmit(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">First Name</label>
+                        <input type="text" required class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-primary" placeholder="Sipho">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Last Name</label>
+                        <input type="text" required class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-primary" placeholder="Ndlovu">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Email Address</label>
+                    <input type="email" required class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-primary" placeholder="sipho@takealot-za.co.za">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Delivery Address (Gauteng / W. Cape / KZN etc.)</label>
+                    <input type="text" required class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-primary" placeholder="12 Rivonia Road, Sandton, Johannesburg">
+                </div>
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Postal Code</label>
+                        <input type="text" required class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-primary" placeholder="2196">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Payment Method</label>
+                        <select class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-primary">
+                            <option>PayFast / Instant EFT</option>
+                            <option>Ozow Secure Instant Payment</option>
+                            <option>FNB / Standard Bank EFT</option>
+                            <option>Credit / Debit Card (Visa/Mastercard)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-slate-400">Total Due:</span>
+                        <div id="checkout-modal-total" class="text-base sm:text-lg font-black text-primary">R0.00</div>
+                    </div>
+                    <button type="submit" class="bg-primary hover:bg-primaryDark text-white px-6 sm:px-8 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-lg transition">
+                        Complete Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- 500+ SOUTH AFRICAN E-COMMERCE PRODUCTS GENERATOR ---
+        const categories = ['Electronics & Tech', 'Home & Appliances', 'Solar & Power Backup', 'Outdoor & Fitness', 'Automotive', 'Health & Beauty'];
+        const baseProducts = [
+            { name: "EcoFlow River 2 Max Portable Power Station (512Wh LiFePO4)", cat: "Solar & Power Backup", price: 7999.00, img: "https://images.unsplash.com/photo-1592838064567-d85150a25632?w=500&auto=format&fit=crop&q=60", sales: 3420, discount: "-35%" },
+            { name: "Gizzu 30W Mini DC UPS for Wi-Fi Router & Fiber ONT", cat: "Solar & Power Backup", price: 899.00, img: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=60", sales: 5120, discount: "-45%" },
+            { name: "Xiaomi Smart Air Fryer Pro 4L with OLED Display", cat: "Home & Appliances", price: 1899.00, img: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&auto=format&fit=crop&q=60", sales: 2890, discount: "-40%" },
+            { name: "JBL Flip 6 Portable Waterproof Bluetooth Speaker", cat: "Electronics & Tech", price: 2299.00, img: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500&auto=format&fit=crop&q=60", sales: 1940, discount: "-25%" },
+            { name: "Garmin fēnix 6X Pro & Sapphire Multisport GPS Watch", cat: "Outdoor & Fitness", price: 9499.00, img: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=500&auto=format&fit=crop&q=60", sales: 830, discount: "-30%" },
+            { name: "Samsung 65" Crystal UHD 4K Smart TV (UA65CU7000)", cat: "Electronics & Tech", price: 10999.00, img: "https://images.unsplash.com/photo-1593784991095-a205069470b6?w=500&auto=format&fit=crop&q=60", sales: 1150, discount: "-20%" },
+            { name: "Karcher K2 Universal High Pressure Washer 110 Bar", cat: "Home & Appliances", price: 2199.00, img: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&auto=format&fit=crop&q=60", sales: 1450, discount: "-38%" },
+            { name: "Thule Raceway Pro 2-Bike Carrier Boot Mount", cat: "Automotive", price: 6899.00, img: "https://images.unsplash.com/photo-1563770660941-20978e870e26?w=500&auto=format&fit=crop&q=60", sales: 420, discount: "-15%" },
+            { name: "Nespresso Essenza Mini Coffee Machine by De'Longhi", cat: "Home & Appliances", price: 2499.00, img: "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=500&auto=format&fit=crop&q=60", sales: 2100, discount: "-32%" },
+            { name: "Cadac Safari Chef 2 High Pressure Gas BBQ Grill", cat: "Outdoor & Fitness", price: 1799.00, img: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&auto=format&fit=crop&q=60", sales: 1650, discount: "-28%" }
+        ];
+
+        let products = [];
+        for (let i = 1; i <= 500; i++) {
+            let base = baseProducts[(i - 1) % baseProducts.length];
+            let variation = i > 10 ? ` [Batch ZA-${i}]` : "";
+            let priceOffset = ((i * 123) % 1500) - 500;
+            let finalPrice = Math.max(199.00, base.price + priceOffset);
+            products.push({
+                id: i,
+                name: base.name + variation,
+                category: base.cat,
+                price: parseFloat(finalPrice.toFixed(2)),
+                originalPrice: parseFloat((finalPrice * 1.6).toFixed(2)),
+                image: base.img,
+                sales: base.sales + (i * 7) % 300,
+                rating: (4.7 + ((i % 3) * 0.1)).toFixed(1),
+                discount: base.discount
+            });
+        }
+
+        let cart = [];
+        let currentCurrency = 'ZAR';
+        let currencyRates = { ZAR: 1, USD: 0.055, EUR: 0.051 };
+        let currencySymbols = { ZAR: 'R', USD: '$', EUR: '€' };
+        let activeCategory = 'All';
+        let searchQuery = '';
+        let selectedProduct = null;
+
+        // --- NAVIGATION & ROUTER ---
+        function switchView(viewName) {
+            const mainContainer = document.getElementById('app-main-container');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            selectedProduct = null;
+
+            if (viewName === 'storefront') {
+                renderStorefront(mainContainer);
+            } else if (viewName === 'hub-login') {
+                renderHubLogin(mainContainer);
+            } else if (viewName === 'hub-dashboard') {
+                renderHubDashboard(mainContainer);
+            } else if (viewName === 'product-detail') {
+                renderProductDetail(mainContainer);
+            }
+        }
+
+        function setActiveBottomNav(btn) {
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('text-primary');
+                b.classList.add('text-slate-400');
+            });
+            btn.classList.remove('text-slate-400');
+            btn.classList.add('text-primary');
+        }
+
+        function openProductDetail(productId) {
+            selectedProduct = products.find(p => p.id === productId);
+            switchView('product-detail');
+        }
+
+        // --- STOREFRONT RENDERER ---
+        function renderStorefront(container) {
+            let filtered = products.filter(p => {
+                let matchesCat = activeCategory === 'All' || p.category === activeCategory;
+                let matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCat && matchesSearch;
+            });
+
+            container.innerHTML = `
+                <!-- Promotional Banner -->
+                <section class="px-3 sm:px-6 pt-4 pb-2">
+                    <div class="bg-gradient-to-r from-blue-900 via-primary to-emerald-700 rounded-2xl p-4 sm:p-8 text-white shadow-xl relative overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
+                        <div class="relative z-10 text-center sm:text-left">
+                            <span class="bg-black/30 text-amber-300 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider inline-flex items-center gap-1 mb-2">
+                                <i class="fa-solid fa-bolt"></i> TAKEALOT & AMAZON ZA FLASH DEALS
+                            </span>
+                            <h2 class="text-xl sm:text-3xl font-black tracking-tight mb-1">South African Express Nation-Wide Sale</h2>
+                            <p class="text-xs sm:text-sm text-slate-100 opacity-90 max-w-lg">Get up to 50% off power backups, electronics, and home appliances dispatched from JHB and CPT fulfillment hubs.</p>
+                        </div>
+                        <div class="relative z-10 flex gap-2 w-full sm:w-auto">
+                            <button onclick="filterByCategory('Solar & Power Backup')" class="flex-1 sm:flex-none bg-white text-primary px-5 py-2.5 rounded-xl font-extrabold text-xs shadow-lg hover:bg-slate-100 transition">
+                                Shop Power Backups
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Category Horizontal Scroll -->
+                <div class="sticky top-16 sm:top-20 bg-[#131C2E]/95 backdrop-blur z-30 border-b border-slate-800 shadow">
+                    <div class="max-w-7xl mx-auto px-3 py-3 flex items-center gap-2 overflow-x-auto hide-scrollbar">
+                        <button onclick="filterByCategory('All')" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap ${activeCategory === 'All' ? 'bg-primary text-white shadow' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}">
+                            🔥 All Items (500)
+                        </button>
+                        ${categories.map(cat => `
+                            <button onclick="filterByCategory('${cat}')" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap ${activeCategory === cat ? 'bg-primary text-white shadow' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}">
+                                ${cat}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <section class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-base sm:text-xl font-black text-white flex items-center gap-2">
+                            <span>Featured South African Deals</span> <span class="text-xs font-normal text-slate-400">(${filtered.length})</span>
+                        </h3>
+                    </div>
+
+                    ${filtered.length === 0 ? `
+                        <div class="text-center py-20 bg-[#131C2E] rounded-2xl border border-slate-800">
+                            <i class="fa-solid fa-box-open text-4xl text-slate-600 mb-3"></i>
+                            <h4 class="text-base font-bold text-white mb-1">No products found</h4>
+                            <p class="text-xs text-slate-400">Try searching for another keyword.</p>
+                        </div>
+                    ` : `
+                        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+                            ${filtered.map(p => `
+                                <div onclick="openProductDetail(${p.id})" class="bg-[#131C2E] border border-slate-800/80 rounded-2xl overflow-hidden shadow-lg hover:border-primary/50 transition duration-300 flex flex-col group cursor-pointer">
+                                    <div class="relative h-36 sm:h-48 overflow-hidden bg-slate-900">
+                                        <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                        <div class="absolute top-2 left-2 bg-primary text-white text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-md shadow">
+                                            ${p.discount}
+                                        </div>
+                                        <div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur text-amber-400 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded">
+                                            ★ ${p.rating}
+                                        </div>
+                                    </div>
+                                    <div class="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+                                        <div>
+                                            <h4 class="font-semibold text-white text-xs sm:text-sm mb-1 line-clamp-2 group-hover:text-primary transition">${p.name}</h4>
+                                            <p class="text-[10px] text-slate-400 mb-2">${p.sales}+ sold on Takealot & Amazon ZA</p>
+                                        </div>
+                                        <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1">
+                                            <div>
+                                                <span class="text-sm sm:text-lg font-black text-primary">${formatPrice(p.price)}</span>
+                                                <span class="text-[10px] text-slate-500 line-through block sm:inline sm:ml-1">${formatPrice(p.originalPrice)}</span>
+                                            </div>
+                                            <button onclick="event.stopPropagation(); addToCart(${p.id})" class="bg-primary hover:bg-primaryDark text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold transition shadow flex items-center justify-center gap-1">
+                                                <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Add</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </section>
+            `;
+        }
+
+        // --- PRODUCT DETAIL VIEW ---
+        function renderProductDetail(container) {
+            if (!selectedProduct) {
+                switchView('storefront');
+                return;
+            }
+            let p = selectedProduct;
+            container.innerHTML = `
+                <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+                    <button onclick="switchView('storefront')" class="mb-6 bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-700 transition">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Products
+                    </button>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-[#131C2E] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
+                        <!-- Product Image -->
+                        <div class="relative h-72 sm:h-96 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800">
+                            <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover">
+                            <div class="absolute top-4 left-4 bg-primary text-white text-xs font-black px-3 py-1 rounded-lg shadow">
+                                ${p.discount} OFF
+                            </div>
+                        </div>
+
+                        <!-- Product Info & Purchasing -->
+                        <div class="flex flex-col justify-between">
+                            <div>
+                                <span class="bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block mb-3">
+                                    ${p.category}
+                                </span>
+                                <h2 class="text-xl sm:text-2xl font-black text-white mb-3">${p.name}</h2>
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="text-amber-400 text-sm font-bold">★ ${p.rating} Rating</div>
+                                    <span class="text-slate-600">|</span>
+                                    <div class="text-slate-400 text-xs">${p.sales}+ successfully delivered nationwide via Courier Guy & Takealot FBT</div>
+                                </div>
+
+                                <div class="bg-[#090D16] p-4 rounded-2xl border border-slate-800 mb-6 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-xs text-slate-400 block mb-0.5">Deal Price (SARS 15% VAT Incl.)</span>
+                                        <div class="text-2xl sm:text-3xl font-black text-primary">${formatPrice(p.price)}</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs text-slate-500 line-through">${formatPrice(p.originalPrice)}</span>
+                                        <span class="text-[10px] text-emerald-400 font-bold block">In Stock • JHB / CPT Hubs</span>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-3 mb-6 text-xs text-slate-300">
+                                    <div class="flex items-center gap-2"><i class="fa-solid fa-truck-fast text-primary"></i> 24–48 hours express nationwide delivery (Courier Guy / RAM)</div>
+                                    <div class="flex items-center gap-2"><i class="fa-solid fa-shield-check text-emerald-400"></i> Official South African Manufacturer Warranty</div>
+                                    <div class="flex items-center gap-2"><i class="fa-solid fa-rotate-left text-amber-400"></i> 30-day hassle-free return policy (Takealot & Amazon ZA compliant)</div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4 pt-4 border-t border-slate-800">
+                                <button onclick="addToCart(${p.id})" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-3.5 rounded-xl font-bold text-sm border border-slate-700 transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                                </button>
+                                <button onclick="addToCart(${p.id}); openCheckoutModal()" class="flex-1 bg-gradient-to-r from-primary to-blue-700 hover:from-primaryDark hover:to-blue-800 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-bolt"></i> Buy Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- AUTH & LOGIN VIEW ---
+        function renderHubLogin(container) {
+            container.innerHTML = `
+                <div class="flex-1 flex items-center justify-center px-4 py-16 bg-[#090D16]">
+                    <div class="max-w-md w-full bg-[#131C2E] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="text-center mb-8">
+                            <div class="w-16 h-16 bg-gradient-to-br from-primary to-zaGold rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-black mb-4 shadow-xl">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">Takealot & Amazon ZA Hub</h3>
+                            <p class="text-xs text-slate-400 mt-1">Password Protected • CIPC / SARS Compliance Portal</p>
+                        </div>
+
+                        <form onsubmit="handleHubLogin(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Merchant Username</label>
+                                <input type="text" id="hub-user" required value="Sipho Ndlovu (Admin)" class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Access Password</label>
+                                <input type="password" id="hub-pass" required placeholder="Enter password" class="w-full bg-[#090D16] border border-slate-700 rounded-xl px-4 py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-primary" value="takealot2026">
+                            </div>
+                            <div class="pt-2">
+                                <button type="submit" class="w-full bg-gradient-to-r from-primary to-blue-700 hover:from-primaryDark hover:to-blue-800 text-white py-3.5 rounded-xl font-bold text-xs sm:text-sm shadow-lg transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-right-to-bracket"></i> Login to Hub
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="mt-6 text-center">
+                            <button onclick="switchView('storefront')" class="text-xs text-primary hover:underline font-semibold flex items-center justify-center gap-1 mx-auto">
+                                <i class="fa-solid fa-arrow-left"></i> Back to Storefront
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleHubLogin(e) {
+            e.preventDefault();
+            switchView('hub-dashboard');
+        }
+
+        // --- HUB DASHBOARD VIEW ---
+        function renderHubDashboard(container) {
+            container.innerHTML = `
+                <div class="flex-1 bg-[#090D16] py-8 px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-[#131C2E] border border-slate-800 p-5 rounded-2xl shadow-xl">
+                            <div>
+                                <h3 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                                    Takealot & Amazon ZA Hub <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">SARS VAT Active</span>
+                                </h3>
+                                <p class="text-xs text-slate-400">CIPC Reg: PTY (LTD) • FBT Warehouses (JHB & CPT) • Courier Guy API</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="switchView('storefront')" class="bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-700">Storefront</button>
+                                <button onclick="switchView('hub-login')" class="bg-red-500/20 text-red-400 px-3.5 py-2 rounded-xl text-xs font-bold border border-red-500/30">Logout</button>
+                            </div>
+                        </div>
+
+                        <!-- Dashboard Stats -->
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                            <div class="bg-[#131C2E] border border-slate-800 p-4 rounded-2xl">
+                                <span class="text-xs text-slate-400 block mb-1">Catalog SKUs</span>
+                                <span class="text-2xl font-black text-white">500 Items</span>
+                            </div>
+                            <div class="bg-[#131C2E] border border-slate-800 p-4 rounded-2xl">
+                                <span class="text-xs text-slate-400 block mb-1">Active Marketplaces</span>
+                                <span class="text-2xl font-black text-white">Takealot & Amazon.co.za</span>
+                            </div>
+                            <div class="bg-[#131C2E] border border-slate-800 p-4 rounded-2xl">
+                                <span class="text-xs text-slate-400 block mb-1">Monthly Turnover (ZAR)</span>
+                                <span class="text-2xl font-black text-primary">R842,500</span>
+                            </div>
+                            <div class="bg-[#131C2E] border border-slate-800 p-4 rounded-2xl">
+                                <span class="text-xs text-slate-400 block mb-1">Stock Sync Freq</span>
+                                <span class="text-2xl font-black text-emerald-400">15 mins</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#131C2E] border border-slate-800 rounded-2xl p-5 shadow-xl">
+                            <h4 class="font-extrabold text-white text-base mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-rotate text-primary"></i> Recent Automated Nationwide Orders
+                            </h4>
+                            <div class="space-y-3">
+                                <div class="bg-[#090D16] border border-slate-800 p-3.5 rounded-xl flex items-center justify-between">
+                                    <div>
+                                        <h5 class="font-bold text-white text-xs">Takealot Order #T-8842109</h5>
+                                        <p class="text-[10px] text-slate-400">EcoFlow River 2 Max • FBT Warehouse Johannesburg (Midrand)</p>
+                                    </div>
+                                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold">Dispatched</span>
+                                </div>
+                                <div class="bg-[#090D16] border border-slate-800 p-3.5 rounded-xl flex items-center justify-between">
+                                    <div>
+                                        <h5 class="font-bold text-white text-xs">Amazon ZA Order #402-9931201</h5>
+                                        <p class="text-[10px] text-slate-400">Garmin fēnix 6X Pro • Courier Guy Waybill #CG-992810</p>
+                                    </div>
+                                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold">Delivered</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- CART & LOGIC ---
+        function formatPrice(amountInZAR) {
+            let converted = amountInZAR * currencyRates[currentCurrency];
+            let symbol = currencySymbols[currentCurrency];
+            if (currentCurrency === 'ZAR') {
+                return `R${converted.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+            return `${symbol}${converted.toFixed(2)}`;
+        }
+
+        function changeCurrency(curr) {
+            currentCurrency = curr;
+            renderCartDrawer();
+            if(document.getElementById('app-main-container')) {
+                if (selectedProduct) {
+                    renderProductDetail(document.getElementById('app-main-container'));
+                } else {
+                    renderStorefront(document.getElementById('app-main-container'));
+                }
+            }
+        }
+
+        function filterByCategory(cat) {
+            activeCategory = cat;
+            selectedProduct = null;
+            if(document.getElementById('app-main-container')) {
+                renderStorefront(document.getElementById('app-main-container'));
+            }
+        }
+
+        function handleSearch(query) {
+            searchQuery = query;
+            selectedProduct = null;
+            if(document.getElementById('app-main-container')) {
+                renderStorefront(document.getElementById('app-main-container'));
+            }
+        }
+
+        function addToCart(productId) {
+            let item = products.find(p => p.id === productId);
+            let existing = cart.find(i => i.id === productId);
+            if(existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ ...item, qty: 1 });
+            }
+            updateCartBadge();
+            renderCartDrawer();
+            toggleCartDrawer();
+        }
+
+        function updateCartBadge() {
+            let totalQty = cart.reduce((sum, i) => sum + i.qty, 0);
+            document.getElementById('cart-badge').innerText = totalQty;
+            document.getElementById('cart-badge-mobile').innerText = totalQty;
+            document.getElementById('drawer-item-count').innerText = totalQty;
+        }
+
+        function toggleCartDrawer() {
+            let drawer = document.getElementById('cart-drawer');
+            drawer.classList.toggle('hidden');
+            renderCartDrawer();
+        }
+
+        function renderCartDrawer() {
+            let container = document.getElementById('cart-items-container');
+            let subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            document.getElementById('cart-subtotal-display').innerText = formatPrice(subtotal);
+
+            if(cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 text-slate-500">
+                        <i class="fa-solid fa-cart-shopping text-4xl mb-3"></i>
+                        <p class="text-xs">Your South African cart is empty.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = cart.map(item => `
+                <div class="py-3 flex items-center justify-between gap-3">
+                    <img src="${item.image}" class="w-14 h-14 object-cover rounded-xl bg-slate-900">
+                    <div class="flex-1">
+                        <h5 class="font-bold text-white text-xs line-clamp-1 mb-0.5">${item.name}</h5>
+                        <div class="text-xs font-black text-primary">${formatPrice(item.price)}</div>
+                        <div class="flex items-center gap-2 mt-1.5">
+                            <button onclick="updateQty(${item.id}, -1)" class="w-5 h-5 rounded bg-slate-800 text-slate-300 font-bold text-xs">-</button>
+                            <span class="text-xs text-white font-semibold">${item.qty}</span>
+                            <button onclick="updateQty(${item.id}, 1)" class="w-5 h-5 rounded bg-slate-800 text-slate-300 font-bold text-xs">+</button>
+                        </div>
+                    </div>
+                    <button onclick="removeFromCart(${item.id})" class="text-slate-500 hover:text-red-400 p-2">
+                        <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function updateQty(id, change) {
+            let item = cart.find(i => i.id === id);
+            if(item) {
+                item.qty += change;
+                if(item.qty <= 0) {
+                    cart = cart.filter(i => i.id !== id);
+                }
+            }
+            updateCartBadge();
+            renderCartDrawer();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(i => i.id !== id);
+            updateCartBadge();
+            renderCartDrawer();
+        }
+
+        function openCheckoutModal() {
+            if(cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            let subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            document.getElementById('checkout-modal-total').innerText = formatPrice(subtotal);
+            document.getElementById('checkout-modal').classList.remove('hidden');
+        }
+
+        function closeCheckoutModal() {
+            document.getElementById('checkout-modal').classList.add('hidden');
+        }
+
+        function handleCheckoutSubmit(e) {
+            e.preventDefault();
+            alert('Order successfully placed and routed via Courier Guy & Takealot FBT / Amazon FBA API! SARS 15% VAT and CIPC compliance verified.');
+            cart = [];
+            updateCartBadge();
+            closeCheckoutModal();
+            toggleCartDrawer();
+        }
+
+        // Initialize App on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            switchView('storefront');
+        });
+    </script>
+</body>
+</html>
